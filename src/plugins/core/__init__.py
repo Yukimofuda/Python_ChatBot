@@ -3,8 +3,12 @@ from __future__ import annotations
 from nonebot import get_driver, on_command, on_message
 from nonebot.adapters import Event
 from nonebot.matcher import Matcher
+from nonebot.params import CommandArg
 from nonebot.rule import to_me
 
+from src.chatbot.commands import ALIASES, COMMANDS
+from src.chatbot.message_render import render_command_help, truncate_text
+from src.chatbot.persona_engine import render_identity
 from src.chatbot.settings import get_settings
 from src.chatbot.text import plain_text
 
@@ -12,7 +16,7 @@ from src.chatbot.text import plain_text
 settings = get_settings()
 
 ping = on_command("ping", aliases={"测试", "ping"}, priority=5, block=True)
-help_cmd = on_command("help", aliases={"帮助", "菜单"}, priority=5, block=True)
+help_cmd = on_command("shion", aliases={"cbhelp", "crosshelp", "机器人帮助", "ShionHelp", "shionhelp", "小栞帮助"}, priority=5, block=True)
 about = on_command("about", aliases={"关于"}, priority=5, block=True)
 chat = on_message(rule=to_me(), priority=50, block=False)
 
@@ -23,29 +27,22 @@ async def handle_ping() -> None:
 
 
 @help_cmd.handle()
-async def handle_help() -> None:
-    await help_cmd.finish(
-        "\n".join(
-            [
-                f"{settings.bot_name} 可用指令：",
-                "/ping - 测试 bot 是否在线",
-                "/echo <内容> - 复读一段文本",
-                "/calc <表达式> - 安全计算四则运算",
-                "/choose A | B | C - 随机选择",
-                "/roll [面数] - 掷骰子，默认 100",
-                "/time [时区] - 查看当前时间，例如 /time Asia/Shanghai",
-                "/status - 查看运行状态",
-            ]
-        )
-    )
+async def handle_help(args=CommandArg()) -> None:
+    topic = args.extract_plain_text().strip().lower()
+    if not topic:
+        await help_cmd.finish(render_command_help(COMMANDS))
+
+    topic = ALIASES.get(topic, topic)
+    if topic == "all":
+        await help_cmd.finish(render_command_help(COMMANDS, title="小栞全部命令"))
+    if topic not in COMMANDS:
+        await help_cmd.finish("没找到这个分类。试试 /shion all，或者 /shion persona。")
+    await help_cmd.finish(render_command_help({topic: COMMANDS[topic]}, title=f"/shion {topic}"))
 
 
 @about.handle()
 async def handle_about() -> None:
-    await about.finish(
-        f"{settings.bot_name} 是一个基于 NoneBot2 的跨平台聊天 bot，"
-        "通过适配器接入 QQ、Telegram、Discord、飞书、OneBot 等平台。"
-    )
+    await about.finish(truncate_text(render_identity(), 900))
 
 
 @chat.handle()
@@ -54,10 +51,8 @@ async def handle_mention(matcher: Matcher, event: Event) -> None:
     if not text:
         return
     lowered = text.lower()
-    if lowered in {"help", "帮助", "菜单"}:
-        await matcher.finish("发送 /help 查看可用功能。")
-    if any(word in lowered for word in ("hello", "hi", "你好")):
-        await matcher.finish(f"你好，我是 {settings.bot_name}。发送 /help 可以看菜单。")
+    if lowered in {"help", "帮助", "菜单", "cbhelp", "shion", "shionhelp"}:
+        await matcher.finish("发送 /shion 查看小栞菜单。")
 
 
 driver = get_driver()

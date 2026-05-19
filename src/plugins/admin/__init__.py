@@ -3,9 +3,10 @@ from __future__ import annotations
 import platform
 from datetime import datetime, timezone
 
-from nonebot import get_driver, on_command
-from nonebot.adapters import Event
+from nonebot import get_driver, on_command, on_message
+from nonebot.adapters import Bot, Event
 
+from src.chatbot.runtime import record_message
 from src.chatbot.settings import get_settings
 from src.chatbot.text import user_id
 
@@ -13,6 +14,7 @@ from src.chatbot.text import user_id
 settings = get_settings()
 started_at = datetime.now(timezone.utc)
 status = on_command("status", aliases={"状态"}, priority=5, block=True)
+message_recorder = on_message(priority=1, block=False)
 
 
 def is_owner(event: Event) -> bool:
@@ -39,3 +41,8 @@ async def handle_status(event: Event) -> None:
             ]
         )
     )
+
+
+@message_recorder.handle()
+async def handle_message_record(bot: Bot, event: Event) -> None:
+    record_message(bot, event)
