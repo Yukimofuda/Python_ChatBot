@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class BotSettings(BaseSettings):
-    bot_name: str = "七濑栞音"
+    bot_name: str = "Python Bot"
     owner_ids: set[str] = Field(default_factory=set)
     admin_ids: set[str] = Field(default_factory=set)
     command_start: set[str] = Field(default_factory=lambda: {"/", "!"})
@@ -19,27 +19,18 @@ class BotSettings(BaseSettings):
     data_dir: str = "data"
     max_reply_text_length: int = 1000
     auto_reply_cooldown_seconds: int = 10
-    ambient_reply_default_level: str = "low"
     memory_max_messages_per_group: int = 200
     llm_enabled: bool = False
-    llm_base_url: str = "https://generativelanguage.googleapis.com/v1beta"
+    llm_base_url: str = ""
     llm_api_key: str = ""
-    llm_model: str = "gemini-2.5-flash"
+    llm_model: str = ""
     llm_timeout_seconds: float = 20.0
-    llm_max_tokens: int = 480
+    llm_max_tokens: int = 300
     llm_temperature: float = 0.7
-    shion_brain_enabled: bool = True
-    shion_auto_reply_enabled: bool = True
-    shion_auto_reply_level: str = "low"
-    shion_memory_backend: str = "sqlite"
-    shion_max_short_messages: int = 300
-    shion_reflection_interval_minutes: int = 60
     bilibili_enabled: bool = True
     bilibili_max_video_mb: int = 80
     bilibili_cooldown_seconds: int = 60
-    bilibili_download_dir: str = (
-        "~/Library/Containers/com.tencent.qq/Data/Documents/crossbot-bilibili"
-    )
+    bilibili_download_dir: str = "downloads/bilibili"
 
     model_config = SettingsConfigDict(
         env_file=".env",

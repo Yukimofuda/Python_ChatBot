@@ -1,73 +1,191 @@
-# Cross Platform ChatBot
+# Python Bot
 
-一个基于 Python 和 NoneBot2 的跨平台聊天 bot 项目骨架。项目参考 NoneBot2 的“驱动器 + 适配器 + 插件”设计，可以按需接入 QQ、OneBot、Telegram、Discord、飞书、GitHub 等平台。
+A clean Python chatbot template built with NoneBot2, OneBot V11, NapCat QQ, FastAPI, and WebSocket.
 
-## 功能
+This repository is intended as a public starter project: it contains only generic code, example configuration, and reusable plugins. Do not commit real tokens, local runtime data, chat logs, or NapCat private configuration.
 
-- 多平台适配器自动注册：安装了哪个适配器，就注册哪个适配器。
-- 插件式功能目录：`src/plugins` 下每个目录都是一个功能模块。
-- 内置基础功能：`/ping`、`/help`、`/about`、`/status`。
-- 内置工具功能：`/echo`、`/calc`、`/choose`、`/roll`、`/time`。
-- 预留配置层：通过 `.env` 和 `CHATBOT_` 前缀控制业务配置。
+## Tech Stack
 
-## 快速开始
+- Python
+- NoneBot2
+- OneBot V11
+- NapCat QQ
+- FastAPI
+- WebSocket
+- yt-dlp / ffmpeg for optional Bilibili video handling
+
+## Runtime Chain
+
+```text
+QQ Client / NapCat
+-> OneBot V11 WebSocket Client
+-> NoneBot2 server
+-> plugins
+```
+
+The Python process does not log in to QQ. NapCat or another OneBot V11 client logs in to QQ and connects back to the NoneBot2 server.
+
+## Installation
 
 ```bash
+cd Python_Bot
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -U pip
-python -m pip install -e ".[onebot,telegram,discord,feishu,qq,github,dev]"
+pip install -e ".[onebot,dev]"
 cp .env.example .env
+```
+
+Edit `.env` and fill only your own local configuration. Do not commit `.env`.
+
+## Start
+
+```bash
 python bot.py
 ```
 
-如果只需要某个平台，可以只安装对应 extra，例如：
-
-```bash
-python -m pip install -e ".[onebot,dev]"
-```
-
-## 目录结构
+The default server listens on:
 
 ```text
-.
-├── bot.py                  # NoneBot2 启动入口
-├── pyproject.toml          # 项目依赖和 NoneBot2 插件配置
-├── src
-│   ├── chatbot             # 共享配置和工具
-│   └── plugins             # 业务插件
-├── tests                   # 测试
-└── scripts                 # 本地辅助脚本
+http://127.0.0.1:8080
 ```
 
-## 新增功能插件
+## NapCat Configuration
 
-在 `src/plugins` 下新建目录即可。例如 `src/plugins/weather/__init__.py`：
+In NapCat or another OneBot V11 client, add a reverse WebSocket client endpoint:
+
+```text
+ws://127.0.0.1:8080/onebot/v11/ws
+```
+
+If you configure an access token in NapCat, set the same token in `.env` with `ONEBOT_V11_ACCESS_TOKEN`. Keep it private.
+
+Use a placeholder in docs and examples, such as `YOUR_QQ_ID` or `123456789`; do not hard-code a real QQ number.
+
+## Web Admin
+
+Open the local admin page after startup:
+
+```text
+http://127.0.0.1:8080/admin
+```
+
+For non-local deployments, set a strong value for:
+
+```env
+CHATBOT_ADMIN_TOKEN=
+```
+
+## Included Plugins
+
+- `core`: ping, help, about, startup logging
+- `utility`: echo, calculator, choose, dice, time
+- `fun`: fortune and small random commands
+- `admin`: local web admin APIs and status
+- `bilibili`: optional Bilibili link parsing and mp4/file sending
+- `sign`: daily sign-in example
+- `points`: simple points ledger example
+
+Private persona, memory, diary, custom prompt, and character-specific modules are intentionally not included in this public template.
+
+## Commands
+
+Core:
+
+- `/ping`
+- `/cbhelp`
+- `/cbhelp all`
+- `/about`
+- `/status`
+
+Utility:
+
+- `/echo content`
+- `/calc 1 + 2 * 3`
+- `/choose A | B | C`
+- `/roll 20`
+- `/time Asia/Shanghai`
+
+Fun:
+
+- `/fortune`
+- `/draw [topic]`
+- `/8ball question`
+- `/rate target`
+- `/crazy name`
+
+Bilibili:
+
+- Send a Bilibili video URL in chat to parse it
+- `/bili status`
+- `/bili on`
+- `/bili off`
+- `/bili clean`
+
+Sign and points:
+
+- `/sign`
+- `/sign info`
+- `/sign rank`
+- `/points`
+- `/points rank`
+
+## Bilibili Dependencies
+
+The Bilibili plugin uses `yt-dlp`. For best video compatibility, install `ffmpeg` on your system.
+
+macOS example:
+
+```bash
+brew install ffmpeg
+```
+
+Temporary Bilibili downloads use `downloads/bilibili` by default and are ignored by git.
+
+## Develop a Plugin
+
+Create a new package under `src/plugins`, for example `src/plugins/weather/__init__.py`:
 
 ```python
 from nonebot import on_command
 from nonebot.params import CommandArg
 
-weather = on_command("weather", aliases={"天气"}, priority=5, block=True)
-
+weather = on_command("weather", priority=5, block=True)
 
 @weather.handle()
 async def handle_weather(args=CommandArg()):
-    city = args.extract_plain_text().strip() or "上海"
-    await weather.finish(f"{city} 天气功能待接入。")
+    city = args.extract_plain_text().strip() or "Shanghai"
+    await weather.finish(f"Weather plugin placeholder for {city}.")
 ```
 
-## 平台接入思路
+NoneBot loads plugin packages from `src/plugins` through `pyproject.toml`.
 
-1. 安装目标平台适配器，例如 `.[onebot]` 或 `.[telegram]`。
-2. 按对应适配器文档配置 `.env` 中的 token、secret、webhook 或 WebSocket 地址。
-3. 启动 `python bot.py`。
-4. 发送 `/ping` 或 `/help` 验证 bot 是否可用。
-
-## 本地检查
+## Tests
 
 ```bash
 python scripts/check_syntax.py
+python -m compileall src
 pytest
-ruff check .
 ```
+
+## Security Notes
+
+Never commit:
+
+- `.env`
+- API keys or tokens
+- real QQ numbers or account data
+- NapCat local configuration
+- `data/` runtime files
+- chat logs or memory files
+- cache, temp, downloads, video files
+- `.venv/` or other virtual environments
+
+Before pushing to GitHub, run a sensitive-content scan and inspect staged files. For example, search for private keys, local paths, real account IDs, and generated data before committing.
+
+```bash
+git status --short
+git diff --cached --name-only
+```
+
+If a key was ever exposed, rotate it before publishing.

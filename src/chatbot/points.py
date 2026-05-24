@@ -29,7 +29,7 @@ def transfer_points(scope: str, from_user: str, to_user: str, amount: int) -> tu
     if amount <= 0:
         return False, "数量必须是正整数。"
     if from_user == to_user:
-        return False, "不能给自己转账，左手倒右手小栞会看困。"
+        return False, "不能给自己转账。"
     if get_points(scope, from_user) < amount:
         return False, "积分不够。先去 /sign 攒一点吧。"
 
@@ -39,7 +39,7 @@ def transfer_points(scope: str, from_user: str, to_user: str, amount: int) -> tu
         users.setdefault(to_user, {"points": 0})["points"] = int(users[to_user].get("points", 0)) + amount
 
     store.update(mutate)
-    return True, "转账完成。小栞已经把积分搬过去了。"
+    return True, "转账完成。"
 
 
 def rank_points(scope: str, limit: int = 10) -> list[tuple[str, int]]:

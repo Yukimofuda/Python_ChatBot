@@ -54,8 +54,8 @@ def render_kv(title: str, data: Mapping[str, Any]) -> str:
     return truncate_text("\n".join(lines))
 
 
-def render_command_help(commands: Mapping[str, Iterable[str]], title: str = "小栞命令菜单") -> str:
-    lines = [title, "帮助入口：/shion。不要用 /help，那个容易和别的 bot 打架。"]
+def render_command_help(commands: Mapping[str, Iterable[str]], title: str = "Python Bot Commands") -> str:
+    lines = [title, "Help command: /cbhelp"]
     for group, items in commands.items():
         lines.append("")
         lines.append(f"[{group}]")

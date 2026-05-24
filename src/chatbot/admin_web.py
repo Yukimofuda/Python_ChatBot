@@ -76,7 +76,7 @@ ADMIN_HTML = """<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CrossBot Admin</title>
+  <title>Python Bot Admin</title>
   <style>
     :root {
       color-scheme: light;
@@ -191,8 +191,8 @@ ADMIN_HTML = """<!doctype html>
 <body>
   <header>
     <div>
-      <h1>CrossBot Admin</h1>
-      <div class="muted">QQ OneBot V11 控制台</div>
+      <h1>Python Bot Admin</h1>
+      <div class="muted">QQ OneBot V11 Admin Console</div>
     </div>
     <div class="row">
       <span class="muted">反向 WS</span>

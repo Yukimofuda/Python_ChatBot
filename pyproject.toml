@@ -1,33 +1,19 @@
 [project]
-name = "cross-platform-chatbot"
+name = "python-bot"
 version = "0.1.0"
-description = "A Python cross-platform chatbot scaffold powered by NoneBot2."
+description = "A clean NoneBot2 + OneBot V11 + NapCat QQ chatbot template."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "nonebot2[fastapi,httpx,websockets]>=2.4.0",
     "nonebot-plugin-apscheduler>=0.5.0",
     "pydantic-settings>=2.0.0",
+    "yt-dlp>=2025.0.0",
 ]
 
 [project.optional-dependencies]
 onebot = [
     "nonebot-adapter-onebot>=2.4.0",
-]
-telegram = [
-    "nonebot-adapter-telegram>=0.1.0",
-]
-discord = [
-    "nonebot-adapter-discord>=0.1.0",
-]
-feishu = [
-    "nonebot-adapter-feishu>=2.0.0",
-]
-qq = [
-    "nonebot-adapter-qq>=1.4.0",
-]
-github = [
-    "nonebot-adapter-github>=0.6.0",
 ]
 dev = [
     "ruff>=0.5.0",
