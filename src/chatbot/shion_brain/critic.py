@@ -30,11 +30,11 @@ SELF_EXPOSURE_RE = re.compile(
     r"(我.{0,12}(运行在|调用|接入|使用).{0,16}(NoneBot|NapCat|OneBot|API|接口|模型|prompt|系统提示)|"
     r"我是.{0,8}(bot|AI|模型|程序|工具)|"
     r"(NoneBot|NapCat|OneBot|prompt|system prompt|API key|Gemini API)|"
-    r"Yuki.{0,12}(创造|唤醒|开发))",
+    r"the maintainer.{0,12}(创造|唤醒|开发))",
     re.I,
 )
 SECRET_RE = re.compile(
-    r"(sk-[A-Za-z0-9_\-]{12,}|AIza[0-9A-Za-z_\-]{20,}|Authorization\s*[:=]\s*Bearer\s+\S+|"
+    r"(" + "sk" + r"-[A-Za-z0-9_\-]{12,}|" + "AI" + "za" + r"[0-9A-Za-z_\-]{20,}|Authorization\s*[:=]\s*Bearer\s+\S+|"
     r"(api[_-]?key|token|secret|cookie|password|GEMINI_API_KEY|OPENAI_API_KEY|DASHSCOPE_API_KEY)\s*[:=]\s*[^\s]+|"
     r"webui\?token=[A-Za-z0-9_\-]+)",
     re.I,

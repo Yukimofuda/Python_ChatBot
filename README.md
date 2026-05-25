@@ -1,10 +1,8 @@
 # Python Bot
 
-A clean Python chatbot template built with NoneBot2, OneBot V11, NapCat QQ, FastAPI, and WebSocket.
+A clean NoneBot2 + OneBot V11 + NapCat QQ chatbot template with optional cognitive-memory modules.
 
-This repository is intended as a public starter project: it contains only generic code, example configuration, and reusable plugins. Do not commit real tokens, local runtime data, chat logs, or NapCat private configuration.
-
-## Tech Stack
+## Stack
 
 - Python
 - NoneBot2
@@ -12,155 +10,132 @@ This repository is intended as a public starter project: it contains only generi
 - NapCat QQ
 - FastAPI
 - WebSocket
-- yt-dlp / ffmpeg for optional Bilibili video handling
+- SQLite
+- Optional Gemini-compatible LLM calls
 
-## Runtime Chain
+## Message Flow
 
 ```text
 QQ Client / NapCat
--> OneBot V11 WebSocket Client
--> NoneBot2 server
+-> OneBot V11 reverse WebSocket
+-> NoneBot2 FastAPI server
 -> plugins
+-> optional cognitive brain modules
 ```
 
-The Python process does not log in to QQ. NapCat or another OneBot V11 client logs in to QQ and connects back to the NoneBot2 server.
-
-## Installation
+## Install
 
 ```bash
 cd Python_Bot
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -U pip
-pip install -e ".[onebot,dev]"
+pip install -e .
 cp .env.example .env
 ```
 
-Edit `.env` and fill only your own local configuration. Do not commit `.env`.
+Edit `.env` with your local ports, owner IDs, and optional API keys. Do not commit `.env`.
 
-## Start
+## Run
 
 ```bash
 python bot.py
 ```
 
-The default server listens on:
-
-```text
-http://127.0.0.1:8080
-```
-
-## NapCat Configuration
-
-In NapCat or another OneBot V11 client, add a reverse WebSocket client endpoint:
+Configure NapCat OneBot V11 reverse WebSocket to connect to:
 
 ```text
 ws://127.0.0.1:8080/onebot/v11/ws
 ```
 
-If you configure an access token in NapCat, set the same token in `.env` with `ONEBOT_V11_ACCESS_TOKEN`. Keep it private.
+## Plugins
 
-Use a placeholder in docs and examples, such as `YOUR_QQ_ID` or `123456789`; do not hard-code a real QQ number.
+The template includes practical plugin examples:
 
-## Web Admin
+- `core`: `/ping`, help, status, about
+- `utility`: calculation and utility commands
+- `fun`: lightweight fun commands
+- `admin`: local admin web/status helpers
+- `bilibili`: optional Bilibili parsing/downloading
+- `points` and `sign`: simple persistence examples
+- `shion_lifecycle`: optional scheduled cognitive maintenance for the brain module
 
-Open the local admin page after startup:
+## Optional Cognitive Brain
 
-```text
-http://127.0.0.1:8080/admin
-```
+`src/chatbot/shion_brain/` is a generic technical module for experimenting with:
 
-For non-local deployments, set a strong value for:
+- SQLite short-term memory
+- semantic graph memory
+- belief-state records
+- procedural interaction memory
+- reflection/distillation loops
+- thought queue and agenda tree
+- conservative lifecycle scheduling
 
-```env
-CHATBOT_ADMIN_TOKEN=
-```
+Prompt files are intentionally empty in this public template. Add your own persona/style prompts locally and keep private prompts out of Git.
 
-## Included Plugins
-
-- `core`: ping, help, about, startup logging
-- `utility`: echo, calculator, choose, dice, time
-- `fun`: fortune and small random commands
-- `admin`: local web admin APIs and status
-- `bilibili`: optional Bilibili link parsing and mp4/file sending
-- `sign`: daily sign-in example
-- `points`: simple points ledger example
-
-Private persona, memory, diary, custom prompt, and character-specific modules are intentionally not included in this public template.
-
-## Commands
-
-Core:
+## Common Commands
 
 - `/ping`
-- `/cbhelp`
-- `/cbhelp all`
+- `/cbhelp` or your configured help command
 - `/about`
+- `/calc 1 + 2 * 3`
+- `/choose a b c`
+- `/roll 1d100`
+- `/time`
+- `/fortune`
 - `/status`
 
-Utility:
-
-- `/echo content`
-- `/calc 1 + 2 * 3`
-- `/choose A | B | C`
-- `/roll 20`
-- `/time Asia/Shanghai`
-
-Fun:
-
-- `/fortune`
-- `/draw [topic]`
-- `/8ball question`
-- `/rate target`
-- `/crazy name`
-
-Bilibili:
-
-- Send a Bilibili video URL in chat to parse it
-- `/bili status`
-- `/bili on`
-- `/bili off`
-- `/bili clean`
-
-Sign and points:
-
-- `/sign`
-- `/sign info`
-- `/sign rank`
-- `/points`
-- `/points rank`
+Available commands depend on which plugins you keep enabled.
 
 ## Bilibili Dependencies
 
-The Bilibili plugin uses `yt-dlp`. For best video compatibility, install `ffmpeg` on your system.
+The Bilibili plugin may require:
 
-macOS example:
+- `yt-dlp`
+- `ffmpeg`
 
-```bash
-brew install ffmpeg
+Keep downloaded media in ignored folders such as `downloads/`.
+
+## LLM Configuration
+
+LLM use is optional and disabled by default. For Gemini-compatible use, set local environment values in `.env`:
+
+```env
+CHATBOT_LLM_ENABLED=false
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.0-flash
+GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta
 ```
 
-Temporary Bilibili downloads use `downloads/bilibili` by default and are ignored by git.
+If generation fails, user-facing code should return a short generic failure message and log details only on the backend.
 
-## Develop a Plugin
+## Security
 
-Create a new package under `src/plugins`, for example `src/plugins/weather/__init__.py`:
+Never commit:
 
-```python
-from nonebot import on_command
-from nonebot.params import CommandArg
+- `.env`
+- API keys or access tokens
+- `data/`
+- SQLite databases
+- NapCat local config
+- chat logs
+- downloaded media
+- private prompts/persona files
 
-weather = on_command("weather", priority=5, block=True)
+If a key was ever exposed, rotate it before publishing.
 
-@weather.handle()
-async def handle_weather(args=CommandArg()):
-    city = args.extract_plain_text().strip() or "Shanghai"
-    await weather.finish(f"Weather plugin placeholder for {city}.")
+## Develop Plugins
+
+Add a plugin under `src/plugins/<plugin_name>/__init__.py`. NoneBot loads plugin directories from `pyproject.toml`:
+
+```toml
+[tool.nonebot]
+plugin_dirs = ["src/plugins"]
 ```
 
-NoneBot loads plugin packages from `src/plugins` through `pyproject.toml`.
+Keep reusable logic in `src/chatbot/` and framework bindings in `src/plugins/`.
 
-## Tests
+## Test
 
 ```bash
 python scripts/check_syntax.py
@@ -168,24 +143,10 @@ python -m compileall src
 pytest
 ```
 
-## Security Notes
-
-Never commit:
-
-- `.env`
-- API keys or tokens
-- real QQ numbers or account data
-- NapCat local configuration
-- `data/` runtime files
-- chat logs or memory files
-- cache, temp, downloads, video files
-- `.venv/` or other virtual environments
-
-Before pushing to GitHub, run a sensitive-content scan and inspect staged files. For example, search for private keys, local paths, real account IDs, and generated data before committing.
+If your venv was moved or renamed, prefer:
 
 ```bash
-git status --short
-git diff --cached --name-only
+python -m pytest
 ```
 
-If a key was ever exposed, rotate it before publishing.
+instead of a stale `pytest` launcher.

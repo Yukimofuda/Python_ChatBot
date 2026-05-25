@@ -13,12 +13,12 @@ COMMAND_PREFIXES = ("/", "!")
 SENSITIVE_RE = re.compile(r"(token|api[_-]?key|密码|passwd|password|secret|cookie)", re.I)
 NAME_ALIASES = (
     "shion",
-    "小栞",
+    "Example Bot",
     "栞音",
     "しおん",
     "栞音酱",
-    "七瀬栞音",
-    "七濑栞音",
+    "Example Persona",
+    "Example Persona",
     "nanase shion",
 )
 

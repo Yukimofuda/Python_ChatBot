@@ -16,7 +16,7 @@ DAILY_PERSONAS = [
     ("秋叶原黑客", "偏技术排查模式。"),
     ("布丁守护者", "温柔轻快一点。"),
     ("第七层住民", "对消息、命令和 WebSocket 很敏感。"),
-    ("月读庭园观察员", "重点观察群梗和氛围。"),
+    ("example workspace观察员", "重点观察群梗和氛围。"),
 ]
 
 
@@ -27,7 +27,7 @@ class PersonaEngine:
     def status_text(self, group_id: str, mood: MoodState) -> str:
         name, desc = self.today_persona(group_id)
         return (
-            "今日小栞：\n"
+            "今日Example Bot：\n"
             f"人格偏移：{name}\n"
             f"状态：{desc}\n"
             f"开心 {mood.happiness} / 疲劳 {mood.tiredness} / 好奇 {mood.curiosity}\n"
@@ -36,7 +36,7 @@ class PersonaEngine:
 
     def intro_fallback(self) -> str:
         return (
-            "我是七濑栞音，叫我小栞或者 Shion 就好。\n"
-            "平时会在月读庭园的窗边看消息，把有趣的梗和难搞的报错都放进观察板。\n"
+            "我是Example Persona，叫我Example Bot或者 Shion 就好。\n"
+            "平时会在example workspace的窗边看消息，把有趣的梗和难搞的报错都放进观察板。\n"
             "有点嘴硬，但你叫我时，我会认真听。"
         )

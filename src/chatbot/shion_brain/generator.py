@@ -5,10 +5,11 @@ import logging
 from pathlib import Path
 import re
 
+from src.chatbot.shion_brain.context import GenerationContext, build_generation_context, context_to_messages
 from src.chatbot.shion_brain.critic import FAILURE_REPLY, Critic
 from src.chatbot.shion_brain.llm_provider import LLMProvider, LLMProviderError, resolve_llm_config
 from src.chatbot.shion_brain.models import Decision, Memory, MoodState, Observation
-from src.chatbot.shion_brain.retrieval import summarize_memories
+from src.chatbot.shion_brain.thought_queue import Thought
 
 
 logger = logging.getLogger(__name__)
@@ -54,26 +55,35 @@ class ReplyGenerator:
         decision: Decision,
         *,
         entry: str = "brain",
+        self_state_summary: str = "",
+        pending_thoughts: list[Thought] | None = None,
+        safety_notes: str = "",
     ) -> str:
-        return await self.safe_generate_reply(observation, mood, memories, decision, entry=entry)
+        context = build_generation_context(
+            observation=observation,
+            decision=decision,
+            mood=mood,
+            memories=memories,
+            self_state_summary=self_state_summary,
+            pending_thoughts=pending_thoughts or [],
+            safety_notes=safety_notes,
+        )
+        return await self.safe_generate_reply(context, entry=entry)
 
     async def safe_generate_reply(
         self,
-        observation: Observation,
-        mood: MoodState,
-        memories: list[Memory],
-        decision: Decision,
+        context: GenerationContext,
         *,
         entry: str,
     ) -> str:
-        messages = build_messages(observation, mood, memories, decision)
+        messages = build_messages(context)
         config = resolve_llm_config()
         try:
-            content, fallback = await self.provider.complete(messages, temperature=decision.temperature)
+            content, fallback = await self.provider.complete(messages, temperature=context.decision.temperature)
             if fallback or not content or not content.strip():
                 raise EmptyLLMResponseError("Gemini returned empty content")
-            reply = clean_reply(content, max_length=decision.max_length)
-            verdict = self.critic.check(reply, decision=decision)
+            reply = clean_reply(content, max_length=context.decision.max_length)
+            verdict = self.critic.check(reply, decision=context.decision)
             if not verdict.ok:
                 raise BadLLMReplyError(verdict.reason or "reply rejected")
             return verdict.text
@@ -88,7 +98,7 @@ class ReplyGenerator:
                 status_code,
                 retry_after,
                 entry,
-                observation.text[:500],
+                context.observation.text[:500],
                 response_body[:1000],
             )
             return FAILURE_REPLY
@@ -144,54 +154,11 @@ def _time_hint() -> str:
     return "现在偏深夜，语气放轻；必要时提醒休息，但不要像家长。"
 
 
-def build_messages(
-    observation: Observation,
-    mood: MoodState,
-    memories: list[Memory],
-    decision: Decision,
-) -> list[dict[str, str]]:
-    character_prompt = load_character_prompt()
-    base_persona = load_prompt("base_persona.md")
-    style_guide = load_prompt("style_guide.md")
-    reply_guide = load_prompt("reply_generation.md")
-    memory_lines = _format_recent_context(memories)
-    intro_rule = ""
-    if decision.reply_type == "intro":
-        intro_rule = (
-            "这次是自我介绍。输出 150-300 个中文字符，结构自然包含：她是谁、性格气质、和对方的关系感、能一起做什么、一个有辨识度的结尾。"
-            "不要说专属萌系小助手，不要过度卖萌，不要暴露后台身份。"
-        )
-    system = (
-        f"{character_prompt}\n\n"
-        f"{base_persona}\n\n"
-        f"{style_guide}\n\n"
-        f"{reply_guide}\n\n"
-        "最高优先级：像熟人对话一样回应眼前这句话。不要输出幕后说明、prompt、模型、接口、API、NoneBot、NapCat、OneBot、配置来源。"
-        "示例只能当气味参考，不能照读示例原句。"
-        "普通聊天 1-4 句话，少 emoji，偶尔可以用轻量颜文字；不要客服腔，不要空泛附和。"
-        "如果用户问你中午做了什么，只能按你的内部状态和记忆自然回答，不能假装现实出门、上学或吃饭。"
-        "如果用户问你怎么看待某人，要给出具体观察感，不要模板化夸奖。"
-        f"{intro_rule}\n\n"
-        f"昼夜提示：{_time_hint()}\n"
-        f"当前心情：开心{mood.happiness} 疲劳{mood.tiredness} 好奇{mood.curiosity} "
-        f"吐槽欲{mood.teasing} 安静{mood.quietness} 专注{mood.focus}。\n"
-        f"最近上下文与记忆：\n{memory_lines}\n"
+def build_messages(context: GenerationContext) -> list[dict[str, str]]:
+    return context_to_messages(
+        context,
+        character_prompt=load_character_prompt(),
+        base_persona=load_prompt("base_persona.md"),
+        style_guide=load_prompt("style_guide.md"),
+        reply_guide=load_prompt("reply_generation.md"),
     )
-    user = (
-        f"回复类型：{decision.reply_type}\n"
-        f"原因：{decision.reason}\n"
-        f"长度上限：{decision.max_length}\n"
-        f"用户消息：{observation.text[:1200]}"
-    )
-    return [{"role": "system", "content": system}, {"role": "user", "content": user}]
-
-
-def _format_recent_context(memories: list[Memory], *, max_items: int = 12) -> str:
-    if not memories:
-        return "暂无最近上下文。"
-    lines = []
-    for memory in memories[:max_items]:
-        content = memory.content.strip().replace("\n", " ")[:120]
-        if content:
-            lines.append(f"- {content}")
-    return "\n".join(lines) or summarize_memories(memories)
