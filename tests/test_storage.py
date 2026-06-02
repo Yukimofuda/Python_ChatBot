@@ -58,7 +58,7 @@ def test_storage_rejects_corrupted_json(tmp_path):
 
 
 def test_storage_has_key(tmp_path):
-    store = JsonPluginStorage("example", data_dir=tmp_path)
+    store = JsonPluginStorage("sample", data_dir=tmp_path)
 
     store.set("enabled", True)
 
