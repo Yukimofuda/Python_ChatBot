@@ -1,105 +1,253 @@
 # Python Bot Public Base
 
-Python Bot Public Base 是从现行 bot 工程中提炼出来的公开仓库版本。它保留通用机器人运行框架、常用插件和本地管理能力，不包含任何人格设定文本、角色设定、私有记忆、研究报告、运行日志或本地密钥。
+A public-safe Python chatbot scaffold powered by **NoneBot2** and **OneBot V11**.
 
-## 版本定位
+This repository keeps the reusable bot runtime, plugin framework, local admin console, utility commands, sign-in/points examples, Bilibili parsing support, optional OpenAI-compatible LLM calling, and a lightweight public group-memory/statistics scaffold. It intentionally excludes private persona prompts, role settings, private social-cognition memory, research reports, logs, local databases, backups, and secrets.
 
-这一版适合作为公开 GitHub 仓库的基础版：
+## What this repository is for
 
-- 基于 NoneBot2 和 OneBot V11，默认面向群聊/私聊机器人运行。
-- 保留 `/ping`、`/bot`、`/about`、工具命令、娱乐命令、签到、积分、B 站视频解析和本地 Admin Web。
-- 保留一个最小 OpenAI-compatible LLM 调用封装，但默认关闭，且不内置任何人格或系统消息。
-- 移除角色设定文本、人格引擎、私有记忆系统、治理重构文档、锁定报告、本地数据、备份文件和环境密钥。
+Use this repository as a clean public base for building a group/private chat bot:
 
-## 目录结构
+- Start a NoneBot2 application with OneBot V11 reverse WebSocket support.
+- Register optional adapters only when their packages are installed and enabled.
+- Keep reusable infrastructure in `src/chatbot/` and framework bindings in `src/plugins/`.
+- Provide common commands such as `/ping`, `/bot`, `/about`, utility commands, fun commands, sign-in, points, Bilibili management, and admin status.
+- Provide a local Admin Web console for runtime inspection and manual message sending.
+- Keep LLM support optional and disabled by default.
+- Keep only a lightweight public memory/statistics layer, not a private persona or social-cognition memory system.
+
+## Current public feature set
+
+| Area | Included |
+| --- | --- |
+| Runtime | NoneBot2 app entry, adapter registration, isolated Python path handling |
+| Default adapter | OneBot V11 reverse WebSocket |
+| Optional adapters | Telegram, Discord, Feishu, QQ, GitHub adapters through optional extras |
+| Commands | Core, utility, fun, sign-in, points, Bilibili, admin status |
+| Admin Web | `/admin`, `/health`, runtime status, recent messages, manual OneBot message sending |
+| Storage | Local JSON storage under `CHATBOT_DATA_DIR` |
+| Public memory/statistics | Recent message snippets, keyword counts, activity counts, simple mood heuristic |
+| LLM | Minimal OpenAI-compatible wrapper, disabled unless configured locally |
+| Tests | Public unit tests for reusable logic |
+
+## Public memory boundary
+
+The latest public-base iteration keeps `src/chatbot/memory.py` as a **generic local group-memory/statistics helper**. It can record recent plain-text snippets per group/private scope, count keywords, count active users, and infer a simple chat mood from recent messages.
+
+This is deliberately not the private cognitive memory system from the original bot project:
+
+- It does **not** include persona memory, role memory, private social-cognition profiles, identity governance, owner recognition, memory migration tools, or private reports.
+- It does **not** build user-profile knowledge graphs or long-term relationship memory.
+- It skips messages matching obvious secret patterns such as `token`, `api_key`, `password`, `secret`, and similar terms.
+- Its retention size is controlled by `CHATBOT_MEMORY_MAX_MESSAGES_PER_GROUP`.
+- Runtime data should stay local under `data/` or another configured private data directory and should not be committed.
+
+If you want to build a stronger memory subsystem on top of this base, treat this module as a small storage/statistics example rather than as a full agent-memory architecture.
+
+## Repository layout
 
 ```text
 .
-├── bot.py                  # NoneBot2 入口
-├── pyproject.toml          # 依赖与 NoneBot 插件配置
-├── .env.example            # 可公开的环境变量模板
+├── bot.py                  # NoneBot2 entry point and optional adapter registration
+├── pyproject.toml          # Dependencies, optional extras, NoneBot plugin config, test config
+├── scripts/                # Maintenance/helper scripts when present
 ├── src/
-│   ├── chatbot/            # 通用运行、配置、存储、权限、管理台、工具逻辑
-│   └── plugins/            # core / utility / fun / admin / sign / points / bilibili
-└── tests/                  # 公开版保留的通用单元测试
+│   ├── chatbot/            # Runtime, settings, storage, permissions, admin web, utilities
+│   └── plugins/            # NoneBot plugins: core, utility, fun, admin, sign, points, bilibili
+└── tests/                  # Public unit tests for reusable, non-private logic
 ```
 
-## 快速开始
+## Requirements
+
+- Python 3.10+
+- A OneBot V11-compatible client if you want to connect to QQ or another OneBot platform
+- `ffmpeg` installed on the system if you want reliable Bilibili media merging/downloading
+
+Python dependencies are declared in `pyproject.toml`.
+
+## Quick start
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -U pip
 python -m pip install -e ".[dev]"
-cp .env.example .env
+```
+
+Create a local `.env` file. Do not commit it.
+
+```bash
+cat > .env <<'EOF'
+CHATBOT_BOT_NAME=Bot
+CHATBOT_OWNER_IDS=[]
+CHATBOT_ADMIN_IDS=[]
+CHATBOT_ADMIN_TOKEN=
+CHATBOT_DATA_DIR=data
+CHATBOT_ENABLED_ADAPTERS=["onebot_v11"]
+CHATBOT_LLM_ENABLED=false
+CHATBOT_LLM_API_KEY=
+CHATBOT_BILIBILI_DOWNLOAD_DIR=downloads/bilibili
+EOF
+```
+
+Run the bot:
+
+```bash
 python bot.py
 ```
 
-OneBot V11 客户端连接地址：
+Configure your OneBot V11 client to connect to the reverse WebSocket endpoint:
 
 ```text
 ws://127.0.0.1:8080/onebot/v11/ws
 ```
 
-启动后可以访问：
+After startup, the local service exposes:
 
 ```text
 http://127.0.0.1:8080/admin
 http://127.0.0.1:8080/health
 ```
 
-## 常用配置
+## Optional adapters
 
-`.env.example` 中的配置可以复制为 `.env` 后修改：
+The default install targets OneBot V11. Optional adapters can be installed with extras:
 
-- `CHATBOT_BOT_NAME`: Bot 显示名称，默认使用通用值 `Bot`，可以按公开仓库需要自行改名。
-- `CHATBOT_OWNER_IDS`: 拥有者账号 ID 列表。
-- `CHATBOT_ADMIN_IDS`: 管理员账号 ID 列表。
-- `CHATBOT_ADMIN_TOKEN`: Admin Web 发送消息接口的管理 token。
-- `CHATBOT_DATA_DIR`: 本地 JSON 数据目录，默认 `data`。
-- `CHATBOT_LLM_ENABLED`: 是否启用可选 LLM 调用，默认 `false`。
-- `CHATBOT_LLM_API_KEY`: 可选 LLM API key，不要提交到公开仓库。
-- `CHATBOT_BILIBILI_DOWNLOAD_DIR`: B 站视频临时下载目录。
+```bash
+python -m pip install -e ".[telegram]"
+python -m pip install -e ".[discord]"
+python -m pip install -e ".[feishu]"
+python -m pip install -e ".[qq]"
+python -m pip install -e ".[github]"
+```
 
-## 命令概览
+Enable only the adapters you need in `.env`:
 
-- `/ping`: 健康检查。
-- `/bot [分类]`: 查看命令菜单，支持 `/bot all`。
-- `/about`: 查看当前公开版说明。
-- `/echo 内容`: 复读。
-- `/calc 表达式`: 安全计算。
-- `/choose A | B`: 随机选择。
-- `/roll [面数]`: 掷骰。
-- `/time [时区]`: 查看时间。
-- `/fortune`、`/draw`、`/8ball`、`/rate`、`/crazy`: 轻量娱乐命令。
-- `/sign`、`/sign info`、`/sign rank`、`/sign calendar`: 签到。
-- `/points`、`/points rank`、`/points give 用户ID 数量`: 积分。
-- `/bili status`、`/bili on`、`/bili off`、`/bili clean`: B 站解析管理。
-- `/status`: 管理员运行状态。
+```env
+CHATBOT_ENABLED_ADAPTERS=["onebot_v11"]
+```
 
-## 版本迭代说明
+## Configuration
 
-### Public Base 0.1.0
+The application reads settings from `.env` with the `CHATBOT_` prefix.
 
-- 从现行工程抽取通用运行框架，保留 NoneBot2 启动入口和多适配器注册机制。
-- 将帮助入口统一改为 `/bot`，移除人格、梦境、环境回复、私有记忆等命令分组。
-- 去掉原项目固定 bot 名称，默认只使用通用显示值 `Bot`，并清除角色名称和人格化帮助文案。
-- 保留签到、积分、B 站解析、Admin Web 和基础工具插件。
-- 提供公开安全的 `.env.example`，只保留占位配置，不包含真实 token、账号或 API key。
-- 保留通用单元测试，移除依赖人格设定和私有记忆架构的测试。
+| Variable | Default | Description |
+| --- | --- | --- |
+| `CHATBOT_BOT_NAME` | `Bot` | Display name used by status/about text |
+| `CHATBOT_OWNER_IDS` | `[]` | Owner account IDs |
+| `CHATBOT_ADMIN_IDS` | `[]` | Admin account IDs |
+| `CHATBOT_COMMAND_START` | `["/", "!"]` | Command prefixes |
+| `CHATBOT_ENABLED_ADAPTERS` | `["onebot_v11"]` | Adapter keys to register |
+| `CHATBOT_ADMIN_ENABLED` | `true` | Enable local Admin Web routes |
+| `CHATBOT_ADMIN_TOKEN` | empty | Token required by admin message-sending API |
+| `CHATBOT_RECENT_MESSAGE_LIMIT` | `100` | Recent message buffer size |
+| `CHATBOT_DATA_DIR` | `data` | Local JSON data directory |
+| `CHATBOT_MEMORY_MAX_MESSAGES_PER_GROUP` | `200` | Retention limit for public group-memory snippets |
+| `CHATBOT_LLM_ENABLED` | `false` | Enable optional LLM provider calls |
+| `CHATBOT_LLM_BASE_URL` | Gemini-compatible default | OpenAI-compatible provider base URL |
+| `CHATBOT_LLM_API_KEY` | empty | Local LLM API key; never commit it |
+| `CHATBOT_LLM_MODEL` | `gemini-2.5-flash` | Model name for optional LLM calls |
+| `CHATBOT_BILIBILI_ENABLED` | `true` | Enable Bilibili parsing plugin |
+| `CHATBOT_BILIBILI_MAX_VIDEO_MB` | `80` | Maximum Bilibili video size |
+| `CHATBOT_BILIBILI_COOLDOWN_SECONDS` | `60` | Bilibili parsing cooldown |
+| `CHATBOT_BILIBILI_DOWNLOAD_DIR` | `downloads/bilibili` | Temporary Bilibili download directory |
 
-## 公开仓库边界
+## Command overview
 
-本目录刻意不包含以下内容：
+| Category | Commands |
+| --- | --- |
+| Core | `/ping`, `/bot [分类]`, `/bot all`, `/about` |
+| Utility | `/echo 内容`, `/calc 表达式`, `/choose A | B`, `/roll [面数]`, `/time [时区]` |
+| Fun | `/fortune`, `/draw [主题]`, `/8ball 问题`, `/rate 对象`, `/crazy [名字]` |
+| Sign-in | `/sign`, `/sign info`, `/sign rank`, `/sign calendar` |
+| Points | `/points`, `/points rank`, `/points give 用户ID 数量`, `/points add 用户ID 数量`, `/points remove 用户ID 数量` |
+| Bilibili | Send a Bilibili URL, `/bili status`, `/bili on`, `/bili off`, `/bili clean` |
+| Admin | `/status` |
 
-- 人格设定文本、角色设定、私有风格指南。
-- 私有记忆、社交认知、身份治理、删除治理和迁移实验代码。
-- 私有工作记忆目录、研究报告、ADR 草稿、运行数据、SQLite/JSON 数据库、日志和备份文件。
-- `.env`、真实 token、API key、账号 ID、平台内部标识和本地客户端路径。
+`/bot` is the canonical help entry. Legacy aliases such as `/cbhelp` and `/bothelp` may still be accepted for compatibility, but new deployments should document `/bot`.
 
-提交公开仓库前建议再运行：
+## Admin Web
+
+The Admin Web console is local by default and intended for development or trusted private deployment.
+
+- `GET /health`: service health check.
+- `GET /admin`: browser-based admin console.
+- `GET /admin/api/status`: runtime status.
+- `GET /admin/api/messages`: recent messages.
+- `POST /admin/api/send`: send a OneBot message when the admin token is valid.
+
+Set `CHATBOT_ADMIN_TOKEN` before exposing the service outside a local machine or trusted LAN.
+
+## LLM usage
+
+LLM calls are optional and disabled by default.
+
+This public base does not ship any persona prompts, system prompts, private style guides, or role definitions. If you enable LLM support, add your own local prompt/configuration and keep private prompt files out of Git.
+
+Example local configuration:
+
+```env
+CHATBOT_LLM_ENABLED=true
+CHATBOT_LLM_BASE_URL=https://your-provider.example/v1
+CHATBOT_LLM_API_KEY=replace-me-locally
+CHATBOT_LLM_MODEL=your-model-name
+```
+
+## Development
+
+Add reusable logic under `src/chatbot/` and keep NoneBot-specific command/event bindings under `src/plugins/`.
+
+A new plugin can be added as:
+
+```text
+src/plugins/<plugin_name>/__init__.py
+```
+
+NoneBot loads plugin directories from `pyproject.toml`:
+
+```toml
+[tool.nonebot]
+plugin_dirs = ["src/plugins"]
+plugins = ["nonebot_plugin_apscheduler"]
+```
+
+## Tests and local checks
 
 ```bash
 python -m pytest -q
-rg -n "api[_-]?key|token|secret|password" .
+python -m ruff check .
 ```
+
+Before publishing or tagging a release, run a local secret/data scan as well:
+
+```bash
+rg -n "api[_-]?key|token|secret|password|passwd|cookie|session" .
+find . -maxdepth 3 \( -name "*.db" -o -name "*.sqlite" -o -name "*.log" -o -name ".env" \) -print
+```
+
+## Security and data policy
+
+Do not commit:
+
+- `.env` or any real API key/token/password/cookie.
+- `data/`, downloaded media, runtime JSON, SQLite files, logs, caches, or backups.
+- Local OneBot/NapCat/client configuration containing account identifiers or credentials.
+- Private persona prompts, role settings, social-cognition memory, identity-governance data, or research reports.
+- Generated `__pycache__/` files or local virtual environments.
+
+If a secret was ever committed or exposed, rotate it before continuing public development.
+
+## Version notes
+
+### Public Base 0.1.0
+
+- Extracted the reusable NoneBot2 runtime and plugin scaffold from a larger bot project.
+- Changed the public help entry to `/bot` while keeping compatibility aliases.
+- Generalized QQ-specific wording to OneBot/platform wording where possible.
+- Removed private persona, role, Shion-specific brain settings, private memory/governance code, reports, logs, local data, and secrets.
+- Kept a lightweight public group-memory/statistics helper for local message snippets, keyword/activity counters, and simple mood inference.
+- Kept sign-in, points, Bilibili parsing, utility/fun commands, Admin Web, and public unit tests.
+
+## Public repository boundary
+
+This repository is a base framework, not a complete private AI-agent product. The public code is designed to be safe to read, fork, and adapt. Any deployment-specific identity rules, persona design, sensitive memory, long-term cognition, private datasets, platform credentials, or local operation logs should live outside this repository.
