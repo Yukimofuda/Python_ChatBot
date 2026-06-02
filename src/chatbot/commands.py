@@ -5,21 +5,21 @@ from collections import OrderedDict
 
 COMMANDS: "OrderedDict[str, list[str]]" = OrderedDict(
     [
-        ("core", ["/ping", "/cbhelp [category]", "/about"]),
-        ("utility", ["/echo content", "/calc expression", "/choose A | B", "/roll [sides]", "/time [timezone]"]),
-        ("fun", ["/fortune", "/draw [topic]", "/8ball question", "/rate target", "/crazy name"]),
+        ("core", ["/ping", "/bot [分类]", "/about"]),
+        ("utility", ["/echo 内容", "/calc 表达式", "/choose A | B", "/roll [面数]", "/time [时区]"]),
+        ("fun", ["/fortune", "/draw [主题]", "/8ball 问题", "/rate 对象", "/crazy [名字]"]),
         ("admin", ["/status"]),
-        ("bilibili", ["Send a Bilibili URL", "/bili status", "/bili on|off", "/bili clean"]),
+        ("bilibili", ["发送 B 站链接 - 自动解析 mp4", "/bili status", "/bili on|off", "/bili clean"]),
         ("sign", ["/sign", "/sign info", "/sign rank", "/sign calendar"]),
-        ("points", ["/points", "/points rank", "/points give USER_ID amount", "/points add USER_ID amount", "/points remove USER_ID amount"]),
+        ("points", ["/points", "/points rank", "/points give 用户ID 数量", "/points add 用户ID 数量", "/points remove 用户ID 数量"]),
     ]
 )
 
 ALIASES = {
-    "all": "all",
+    "bili": "bilibili",
     "help": "core",
     "bothelp": "core",
-    "bili": "bilibili",
+    "bot_help": "core",
     "签到": "sign",
     "积分": "points",
 }

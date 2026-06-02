@@ -80,7 +80,7 @@ def runtime_status() -> dict[str, Any]:
             for self_id, bot in sorted(bots.items())
         ],
         "message_count": len(RECENT_MESSAGES),
-        "qq_reverse_ws": "ws://127.0.0.1:8080/onebot/v11/ws",
+        "onebot_v11_reverse_ws": "ws://127.0.0.1:8080/onebot/v11/ws",
         "admin": {
             "enabled": get_settings().admin_enabled,
             "token_required": bool(get_settings().admin_token),
@@ -107,7 +107,7 @@ def get_onebot_v11_bot(self_id: str | None = None) -> Bot:
     raise ValueError("No OneBot V11 bot is connected yet.")
 
 
-async def send_qq_message(
+async def send_onebot_v11_message(
     *,
     target_type: str,
     target_id: int,

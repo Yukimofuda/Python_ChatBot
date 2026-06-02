@@ -6,7 +6,7 @@ from fastapi import Header, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
-from src.chatbot.runtime import recent_messages, runtime_status, send_qq_message
+from src.chatbot.runtime import recent_messages, runtime_status, send_onebot_v11_message
 from src.chatbot.settings import get_settings
 
 
@@ -58,7 +58,7 @@ def setup_admin_routes(app: Any) -> None:
         x_admin_token: str = Header(default=""),
     ) -> dict[str, Any]:
         _require_admin(payload.token, x_admin_token)
-        result = await send_qq_message(
+        result = await send_onebot_v11_message(
             target_type=payload.target_type,
             target_id=payload.target_id,
             message=payload.message,
@@ -76,7 +76,7 @@ ADMIN_HTML = """<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Python Bot Admin</title>
+  <title>Bot Admin</title>
   <style>
     :root {
       color-scheme: light;
@@ -191,8 +191,8 @@ ADMIN_HTML = """<!doctype html>
 <body>
   <header>
     <div>
-      <h1>Python Bot Admin</h1>
-      <div class="muted">QQ OneBot V11 Admin Console</div>
+      <h1>Bot Admin</h1>
+      <div class="muted">OneBot V11 控制台</div>
     </div>
     <div class="row">
       <span class="muted">反向 WS</span>
@@ -207,7 +207,7 @@ ADMIN_HTML = """<!doctype html>
       <div class="metric"><span>运行时间</span><strong id="uptime">-</strong></div>
     </div>
     <section>
-      <h2>发送 QQ 消息</h2>
+      <h2>发送 OneBot 消息</h2>
       <form id="send-form">
         <label>目标类型
           <select name="target_type">
@@ -215,10 +215,10 @@ ADMIN_HTML = """<!doctype html>
             <option value="private">私聊</option>
           </select>
         </label>
-        <label>目标 QQ / 群号
+        <label>目标账号 / 群号
           <input name="target_id" inputmode="numeric" placeholder="例如 123456789" required>
         </label>
-        <label>Bot QQ，可留空
+        <label>Bot 账号，可留空
           <input name="bot_id" placeholder="自动选择已连接 OneBot V11">
         </label>
         <label>管理 Token
@@ -255,7 +255,7 @@ ADMIN_HTML = """<!doctype html>
       $('bots').textContent = status.bots.length ? status.bots.map((b) => b.self_id).join(', ') : '未连接';
       $('adapters').textContent = status.adapters.join(', ') || '无';
       $('uptime').textContent = fmtUptime(status.uptime_seconds);
-      $('ws').textContent = status.qq_reverse_ws;
+      $('ws').textContent = status.onebot_v11_reverse_ws;
 
       const messages = await fetch('/admin/api/messages').then((r) => r.json());
       $('messages').innerHTML = messages.items.map((item) => `

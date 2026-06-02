@@ -14,28 +14,28 @@ rate = on_command("rate", aliases={"打分"}, priority=5, block=True)
 crazy = on_command("crazy", aliases={"发病"}, priority=5, block=True)
 
 FORTUNES = [
-    ("大吉", "Good day to start something new."),
-    ("中吉", "Steady progress is favored today."),
-    ("小吉", "Take a short break, then continue."),
-    ("末吉", "Back up important files and be careful with unknown links."),
-    ("凶", "Hydrate, restart if needed, and rest early."),
+    ("大吉", "适合开新坑、发怪图、把 TODO 变成 done。"),
+    ("中吉", "适合稳扎稳打，少和奇怪报错硬碰硬。"),
+    ("小吉", "适合摸一会儿再干活，效率反而更高。"),
+    ("末吉", "适合备份文件，谨慎点击来路不明的按钮。"),
+    ("凶", "适合喝水、重启、早点睡。"),
 ]
 DRAW_ITEMS = ["大吉", "吉", "半吉", "小吉", "末吉", "凶", "大凶"]
 ANSWERS = [
     "可以，甚至现在就可以。",
     "不太妙，建议先观望。",
-    "Ask again later.",
+    "命运说：再问就是加班。",
     "概率很高，但需要一点运气。",
-    "Not sure yet. Give it a moment.",
-    "Looks promising.",
-    "Wait a little and observe.",
+    "别急，答案正在加载。",
+    "会赢的。",
+    "先别动，让事情自己暴露。",
 ]
 CRAZY_TEMPLATES = [
     "{name}，没有你我可怎么活啊！",
-    "Today's chat MVP is {name}.",
-    "{name} joined; the room got more lively.",
-    "Detected {name}; chat energy increased by 37%.",
-    "{name}, thanks for keeping the chat alive.",
+    "我宣布今天的群聊 MVP 是 {name}。",
+    "{name} 一出现，CPU 风扇都开始鼓掌。",
+    "检测到 {name}，群聊含糖量上升 37%。",
+    "{name}，你是这片赛博荒原里唯一的补给站。",
 ]
 
 

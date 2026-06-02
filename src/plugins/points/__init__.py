@@ -66,7 +66,7 @@ def mentioned_user_ids(event: Event) -> list[str]:
     for segment in raw.get("message", []):
         if not isinstance(segment, dict) or segment.get("type") != "at":
             continue
-        qq = segment.get("data", {}).get("qq")
-        if qq and str(qq) != "all":
-            users.append(str(qq))
+        account_id = segment.get("data", {}).get("qq")
+        if account_id and str(account_id) != "all":
+            users.append(str(account_id))
     return users
