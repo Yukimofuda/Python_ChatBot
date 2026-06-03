@@ -76,7 +76,7 @@ ADMIN_HTML = """<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bot Admin</title>
+  <title>CrossBot Admin</title>
   <style>
     :root {
       color-scheme: light;
@@ -191,7 +191,7 @@ ADMIN_HTML = """<!doctype html>
 <body>
   <header>
     <div>
-      <h1>Bot Admin</h1>
+      <h1>CrossBot Admin</h1>
       <div class="muted">OneBot V11 控制台</div>
     </div>
     <div class="row">

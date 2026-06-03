@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Runtime data and secrets
+.env
+.env.*
+!.env.example
+data/
+downloads/
+*.sqlite
+*.sqlite3
+*.db
+*.log
+
+# Local platform/client files
+NapCat*/
+*.session
+*.cookie
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Project/private archives
+backups/
+.patch_backups/
+memory-bank/
+memory_system/
+manual/
+docs/private/

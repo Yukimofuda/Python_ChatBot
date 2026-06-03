@@ -45,7 +45,7 @@ async def handle_about() -> None:
     await about.finish(
         truncate_text(
             f"{settings.bot_name}: a public-safe NoneBot2 chatbot scaffold with utility, "
-            "points, sign-in, admin console, and optional LLM provider support.",
+            "points, sign-in, Bilibili parsing, admin console, optional LLM, and generic memory support.",
             900,
         )
     )
@@ -53,18 +53,14 @@ async def handle_about() -> None:
 
 @chat.handle()
 async def handle_mention(matcher: Matcher, bot: Bot, event: Event) -> None:
-    text = plain_text(event)
-    if not text:
+    text = plain_text(event).strip()
+    if not text or text.startswith(("/", "!")):
         return
-    if text.startswith(("/", "!")):
+    if str(get_user_id(event)) == str(bot.self_id):
         return
     lowered = text.lower()
     if lowered in {"help", "帮助", "菜单", "cbhelp", "bot", "bothelp"}:
         await matcher.finish("发送 /bot 查看命令菜单。")
-
-    if str(get_user_id(event)) == str(bot.self_id):
-        return
-
     await matcher.finish("我收到啦。发送 /bot 查看可用命令。")
 
 
