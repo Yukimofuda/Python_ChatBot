@@ -14,15 +14,15 @@ def test_cooldown_returns_remaining_time():
 def test_cooldown_group_scope_is_shared():
     manager = CooldownManager()
 
-    assert manager.check("video", group_id="100", seconds=10, scope="group") == 0
-    assert manager.check("video", group_id="100", user_id="2", seconds=10, scope="group") > 0
-    assert manager.check("video", group_id="200", seconds=10, scope="group") == 0
+    assert manager.check("ambient", group_id="100", seconds=10, scope="group") == 0
+    assert manager.check("ambient", group_id="100", user_id="2", seconds=10, scope="group") > 0
+    assert manager.check("ambient", group_id="200", seconds=10, scope="group") == 0
 
 
 def test_cooldown_reset():
     manager = CooldownManager()
 
-    manager.check("sample", group_id="100", seconds=10, scope="group")
-    manager.reset("sample", group_id="100", scope="group")
+    manager.check("meme", group_id="100", seconds=10, scope="group")
+    manager.reset("meme", group_id="100", scope="group")
 
-    assert manager.remaining("sample", group_id="100", scope="group") == 0
+    assert manager.remaining("meme", group_id="100", scope="group") == 0

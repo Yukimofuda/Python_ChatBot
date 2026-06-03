@@ -94,7 +94,7 @@ def rank_text(scope: str) -> str:
         reverse=True,
     )
     if not rows:
-        return "这个会话还没人签到。"
+        return "这个会话还没人签到。榜单空空，Bot也有点空。"
     return render_rank("签到积分榜", rows)
 
 

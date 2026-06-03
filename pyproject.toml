@@ -1,12 +1,11 @@
 [project]
-name = "cross-platform-chatbot"
+name = "python-bot-public-base"
 version = "0.1.0"
-description = "A Python cross-platform chatbot scaffold powered by NoneBot2."
+description = "A public-safe NoneBot2 chatbot scaffold with generic memory support."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "nonebot2[fastapi,httpx,websockets]>=2.4.0",
-    "nonebot-adapter-onebot>=2.4.0",
     "nonebot-plugin-apscheduler>=0.5.0",
     "pydantic-settings>=2.0.0",
     "yt-dlp>=2025.0.0",
@@ -14,6 +13,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+onebot = [
+    "nonebot-adapter-onebot>=2.4.0",
+]
 telegram = [
     # The Telegram adapter currently publishes beta releases only, so the
     # pre-release marker must be explicit for pip to resolve it.

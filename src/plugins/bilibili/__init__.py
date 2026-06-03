@@ -87,7 +87,7 @@ async def handle_bilibili(bot: Bot, event: Event) -> None:
         except Exception:
             cleanup_video(video.path)
             await matcher.finish(
-                "视频已解析，但平台发送失败。"
+                "视频已解析，但 QQ 发送失败。"
                 f"\n原因：{exc.message or exc.wording}"
                 "\n本地临时 mp4 已删除。"
             )

@@ -21,18 +21,16 @@ class BotSettings(BaseSettings):
     auto_reply_cooldown_seconds: int = 10
     memory_max_messages_per_group: int = 200
     llm_enabled: bool = False
-    llm_base_url: str = "https://generativelanguage.googleapis.com/v1beta"
+    llm_base_url: str = "https://api.openai.com/v1"
     llm_api_key: str = ""
-    llm_model: str = "gemini-2.5-flash"
+    llm_model: str = "gpt-4o-mini"
     llm_timeout_seconds: float = 20.0
     llm_max_tokens: int = 480
     llm_temperature: float = 0.7
     bilibili_enabled: bool = True
     bilibili_max_video_mb: int = 80
     bilibili_cooldown_seconds: int = 60
-    bilibili_download_dir: str = (
-        "downloads/bilibili"
-    )
+    bilibili_download_dir: str = "downloads/bilibili"
 
     model_config = SettingsConfigDict(
         env_file=".env",
