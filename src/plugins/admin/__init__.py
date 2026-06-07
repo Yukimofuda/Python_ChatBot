@@ -8,7 +8,7 @@ from nonebot.adapters import Bot, Event
 
 from src.chatbot.runtime import record_message
 from src.chatbot.settings import get_settings
-from src.chatbot.text import user_id
+from src.chatbot.permissions import require_admin
 
 
 settings = get_settings()
@@ -17,14 +17,9 @@ status = on_command("status", aliases={"状态"}, priority=5, block=True)
 message_recorder = on_message(priority=1, block=False)
 
 
-def is_owner(event: Event) -> bool:
-    owners = {str(owner) for owner in settings.owner_ids}
-    return not owners or user_id(event) in owners
-
-
 @status.handle()
 async def handle_status(event: Event) -> None:
-    if not is_owner(event):
+    if settings.admin_ids and not require_admin(event):
         await status.finish("你没有权限查看运行状态。")
 
     driver = get_driver()
@@ -38,6 +33,7 @@ async def handle_status(event: Event) -> None:
                 f"Driver: {driver.type}",
                 f"Adapters: {adapters}",
                 f"Uptime: {str(uptime).split('.')[0]}",
+                "Privacy mode: public-safe",
             ]
         )
     )

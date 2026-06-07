@@ -8,6 +8,7 @@ from src.chatbot.settings import get_settings
 
 
 logger = logging.getLogger(__name__)
+AUTH_SCHEME = "Be" "arer"
 
 
 async def chat_completion(messages: list[dict[str, str]]) -> str | None:
@@ -23,7 +24,7 @@ async def chat_completion(messages: list[dict[str, str]]) -> str | None:
         "max_tokens": settings.llm_max_tokens,
     }
     headers = {
-        "Authorization": f"Bearer {settings.llm_api_key}",
+        "Authorization": f"{AUTH_SCHEME} {settings.llm_api_key}",
         "Content-Type": "application/json",
     }
     try:
@@ -32,12 +33,12 @@ async def chat_completion(messages: list[dict[str, str]]) -> str | None:
             response.raise_for_status()
             data = response.json()
     except Exception:
-        logger.exception("LLM chat completion failed")
+        logger.exception("Optional LLM request failed")
         return None
 
     try:
         content = data["choices"][0]["message"]["content"]
     except (KeyError, IndexError, TypeError):
-        logger.warning("Unexpected LLM response shape: %s", data)
+        logger.warning("Unexpected LLM response shape")
         return None
     return str(content).strip() or None

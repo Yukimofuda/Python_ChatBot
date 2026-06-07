@@ -10,36 +10,36 @@ MAX_STREAK_BONUS = 10
 MAX_RANDOM_BONUS = 5
 
 
-def sign_user(
+def sign_member(
     data: dict[str, Any],
     *,
     scope: str,
-    user_id: str,
+    member_key: str,
     today: date,
     rng: random.Random | None = None,
 ) -> tuple[dict[str, Any], bool, int]:
     rng = rng or random.Random()
     scopes = data.setdefault("scopes", {})
-    users = scopes.setdefault(scope, {"users": {}}).setdefault("users", {})
-    user = users.setdefault(
-        user_id,
+    members = scopes.setdefault(scope, {"members": {}}).setdefault("members", {})
+    member = members.setdefault(
+        member_key,
         {"total_days": 0, "streak_days": 0, "last_sign_date": "", "points": 0, "history": []},
     )
     today_text = today.isoformat()
-    if user.get("last_sign_date") == today_text:
-        return user, False, 0
+    if member.get("last_sign_date") == today_text:
+        return member, False, 0
 
     yesterday = (today - timedelta(days=1)).isoformat()
-    streak = int(user.get("streak_days", 0)) + 1 if user.get("last_sign_date") == yesterday else 1
+    streak = int(member.get("streak_days", 0)) + 1 if member.get("last_sign_date") == yesterday else 1
     reward = BASE_REWARD + min(streak - 1, MAX_STREAK_BONUS) + rng.randint(0, MAX_RANDOM_BONUS)
-    user["streak_days"] = streak
-    user["total_days"] = int(user.get("total_days", 0)) + 1
-    user["last_sign_date"] = today_text
-    user["points"] = int(user.get("points", 0)) + reward
-    history = user.setdefault("history", [])
+    member["streak_days"] = streak
+    member["total_days"] = int(member.get("total_days", 0)) + 1
+    member["last_sign_date"] = today_text
+    member["points"] = int(member.get("points", 0)) + reward
+    history = member.setdefault("history", [])
     history.append(today_text)
     del history[:-31]
-    return user, True, reward
+    return member, True, reward
 
 
 def calendar_text(history: list[str], *, today: date, days: int = 7) -> str:
