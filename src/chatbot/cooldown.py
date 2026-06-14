@@ -12,12 +12,12 @@ class CooldownManager:
         self,
         key: str,
         *,
-        actor_key: str | None = None,
-        room_key: str | None = None,
+        user_id: str | None = None,
+        group_id: str | None = None,
         seconds: float,
         scope: str = "auto",
     ) -> float:
-        cooldown_key = self._make_key(key, actor_key=actor_key, room_key=room_key, scope=scope)
+        cooldown_key = self._make_key(key, user_id=user_id, group_id=group_id, scope=scope)
         now = time.monotonic()
         expires_at = self._expires_at.get(cooldown_key, 0)
         if expires_at > now:
@@ -30,23 +30,23 @@ class CooldownManager:
         self,
         key: str,
         *,
-        actor_key: str | None = None,
-        room_key: str | None = None,
+        user_id: str | None = None,
+        group_id: str | None = None,
         scope: str = "auto",
     ) -> float:
-        cooldown_key = self._make_key(key, actor_key=actor_key, room_key=room_key, scope=scope)
+        cooldown_key = self._make_key(key, user_id=user_id, group_id=group_id, scope=scope)
         return max(0.0, self._expires_at.get(cooldown_key, 0) - time.monotonic())
 
     def reset(
         self,
         key: str,
         *,
-        actor_key: str | None = None,
-        room_key: str | None = None,
+        user_id: str | None = None,
+        group_id: str | None = None,
         scope: str = "auto",
     ) -> None:
         self._expires_at.pop(
-            self._make_key(key, actor_key=actor_key, room_key=room_key, scope=scope),
+            self._make_key(key, user_id=user_id, group_id=group_id, scope=scope),
             None,
         )
 
@@ -54,19 +54,19 @@ class CooldownManager:
         self,
         key: str,
         *,
-        actor_key: str | None,
-        room_key: str | None,
+        user_id: str | None,
+        group_id: str | None,
         scope: str,
     ) -> tuple[str, str]:
         if scope == "global":
             return key, "global"
-        if scope == "actor":
-            return key, actor_key or "actor-unknown"
-        if scope == "room":
-            return key, room_key or "private"
-        if room_key:
-            return key, room_key
-        return key, actor_key or "actor-unknown"
+        if scope == "user":
+            return key, f"user:{user_id or 'unknown'}"
+        if scope == "group":
+            return key, f"group:{group_id or 'private'}"
+        if group_id:
+            return key, f"group:{group_id}"
+        return key, f"user:{user_id or 'unknown'}"
 
     def _cleanup(self, now: float) -> None:
         for key in [key for key, expires_at in self._expires_at.items() if expires_at <= now]:

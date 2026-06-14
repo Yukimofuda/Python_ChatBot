@@ -1,43 +1,38 @@
 from __future__ import annotations
 
-import hashlib
-
 from nonebot.adapters import Event
 from nonebot.compat import model_dump
 
 from src.chatbot.settings import get_settings
 
 
-def _stable_key(prefix: str, raw_value: int | str | None) -> str:
-    raw = "" if raw_value is None else str(raw_value).strip()
-    if not raw:
-        return f"{prefix}-unknown"
-    digest = hashlib.sha1(raw.encode("utf-8")).hexdigest()[:10]
-    return f"{prefix}-{digest}"
+def normalize_user_id(user_id: int | str | None) -> str:
+    return "" if user_id is None else str(user_id)
 
 
-def actor_key_from_value(raw_value: int | str | None) -> str:
-    return _stable_key("actor", raw_value)
+def is_owner(user_id: int | str | None) -> bool:
+    user = normalize_user_id(user_id)
+    return bool(user and user in {str(item) for item in get_settings().owner_ids})
 
 
-def room_key_from_value(raw_value: int | str | None) -> str:
-    return _stable_key("room", raw_value)
+def is_admin(user_id: int | str | None) -> bool:
+    user = normalize_user_id(user_id)
+    admins = {str(item) for item in get_settings().admin_ids}
+    return is_owner(user) or bool(user and user in admins)
 
 
-def event_actor_key(event: Event) -> str:
+def get_user_id(event: Event) -> str:
     try:
-        return actor_key_from_value(event.get_user_id())
+        return event.get_user_id()
     except Exception:
         raw = model_dump(event)
-        return actor_key_from_value(raw.get("user_id"))
+        return normalize_user_id(raw.get("user_id"))
 
 
-def event_room_key(event: Event) -> str | None:
+def get_group_id(event: Event) -> str | None:
     raw = model_dump(event)
-    room_id = raw.get("group_id")
-    if room_id is not None:
-        return room_key_from_value(room_id)
-    return None
+    group_id = raw.get("group_id")
+    return str(group_id) if group_id is not None else None
 
 
 def is_group_event(event: Event) -> bool:
@@ -50,16 +45,5 @@ def is_private_event(event: Event) -> bool:
     return raw.get("message_type") == "private" and raw.get("group_id") is None
 
 
-def is_admin(actor_id: int | str | None) -> bool:
-    if actor_id is None:
-        return False
-    allowed = {actor_key_from_value(value) for value in get_settings().admin_ids}
-    return actor_key_from_value(actor_id) in allowed
-
-
 def require_admin(event: Event) -> bool:
-    try:
-        actor_id = event.get_user_id()
-    except Exception:
-        actor_id = model_dump(event).get("user_id")
-    return is_admin(actor_id)
+    return is_admin(get_user_id(event))

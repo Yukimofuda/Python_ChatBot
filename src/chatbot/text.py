@@ -3,7 +3,7 @@ from __future__ import annotations
 from nonebot.adapters import Event
 
 
-def raw_actor_id(event: Event) -> str:
+def user_id(event: Event) -> str:
     try:
         return event.get_user_id()
     except Exception:
